@@ -38,6 +38,7 @@ input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line
 .sum .t{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:700}
 .promo{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--acc2);font-size:.85rem}
 .btn{display:block;width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--ok);color:#fff;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;text-align:center;text-decoration:none}
+.btn.alt{background:transparent;color:var(--ok);border:2px solid var(--ok);margin-top:10px}
 .err{color:#c0392b;font-size:.88rem;margin-top:10px;min-height:1.2em}
 .note{color:var(--mute);font-size:.8rem;margin-top:14px;text-align:center}
 </style>
@@ -75,14 +76,16 @@ input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line
 <div class="sum" id="sum"></div>
 <div class="promo">🎁 Voucher Hadiah 30% untuk kunjungan kedua (sah sehingga 31 Disember 2026). Percuma teh herba + sauna herba untuk pembelian RM80 ke atas.</div>
 <div class="err" id="err"></div>
-<a class="btn" id="go" href="#" target="_blank" rel="noopener">Hantar tempahan melalui WhatsApp</a>
-<p class="note">Tempahan disahkan selepas pihak kami membalas mesej WhatsApp anda.</p>
+<a class="btn" id="go" data-k="wa" href="#" target="_blank" rel="noopener">Hantar tempahan ke WhatsApp 1</a>
+<a class="btn alt" id="go2" data-k="wa2" href="#" target="_blank" rel="noopener">Hantar juga ke WhatsApp 2</a>
+<p class="note">Tekan kedua-dua butang supaya tempahan sampai kepada kedua-dua nombor kami. Tempahan disahkan selepas kami membalas mesej WhatsApp anda.</p>
 </main>
 
 <script>
 // ===== TETAPAN: ubah di sini =====
 var CFG = {
-  wa: "60128315188",      // nombor WhatsApp spa (format 60..., tanpa + atau -)
+  wa: "60128315188",      // nombor WhatsApp 1
+  wa2: "601145787860",    // nombor WhatsApp 2 (011-45787860)      // nombor WhatsApp spa (format 60..., tanpa + atau -)
   mula: "2026-12-01",     // tarikh paling awal boleh ditempah (pembukaan)
   buka: 10, tutup: 21,    // waktu operasi (jam, 24j). Slot terakhir = tutup - 1
   maxPax: 6,
@@ -98,7 +101,7 @@ var SVCS = [
   {n:"Urutan 60 Minit", tag:"Bestseller", d:60, p:68, was:138, t:"Cuci kaki 10 min + urut 50 min"},
   {n:"Urutan 90 Minit", d:90, p:98, was:198, t:"Cuci kaki 10 min + urut 80 min"}
 ];
-var THER = ["Melati","Melur","Merak","Matahari","Mawar"]; // senarai terapis
+var THER = ["Melati","Melur","Merak","Matahari","Mawar","Magnolia","Mandevilla","Marigold","Miltonia","Mimosa","Mirabilis"]; // senarai terapis
 var ADDS = [
   {n:"Scrub Kaki", d:15, p:20},
   {n:"Scrub Full Body", d:20, p:35},
@@ -185,7 +188,7 @@ function msg(){
    "Catatan: "+($("note").value.trim()||"-")+"\n"+
    "Anggaran: RM"+total();
 }
-$("go").onclick=function(e){
+function goClick(e){
   var er="";
   if(sel===null)er="Sila pilih rawatan.";
   else if(!$("date").value)er="Sila pilih tarikh.";
@@ -195,8 +198,9 @@ $("go").onclick=function(e){
   $("err").textContent=er;
   if(er){e.preventDefault();return}
   try{localStorage.setItem("spa_cust",JSON.stringify({n:$("name").value.trim(),p:$("phone").value.trim()}))}catch(x){}
-  this.href="https://wa.me/"+CFG.wa+"?text="+encodeURIComponent(msg());
+  this.href="https://wa.me/"+CFG[this.dataset.k]+"?text="+encodeURIComponent(msg());
 };
+$("go").onclick=goClick;$("go2").onclick=goClick;
 $("date").onchange=function(){drawSlots();drawSvcs();upd()};
 $("pax").onchange=upd;$("ther").onchange=upd;
 try{var c=JSON.parse(localStorage.getItem("spa_cust")||"null");if(c){$("name").value=c.n||"";$("phone").value=c.p||""}}catch(x){}
