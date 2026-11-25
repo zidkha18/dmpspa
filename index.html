@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tempahan De Melati Purnama Spa</title>
+<style>
+:root{--bg:#faf6fb;--card:#fff;--ink:#2a2130;--mute:#7a6a85;--line:#e4d9ea;--acc:#6b3f8f;--acc2:#efe4f6;--gold:#b8892e;--ok:#25a244;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a141f;--card:#251c2c;--ink:#f3eaf7;--mute:#b5a6c0;--line:#3f3149;--acc:#c9a0e8;--acc2:#35264280;--gold:#e0b45a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1a141f;--card:#251c2c;--ink:#f3eaf7;--mute:#b5a6c0;--line:#3f3149;--acc:#c9a0e8;--acc2:#35264280;--gold:#e0b45a;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.5rem;margin:8px 0 2px;color:var(--acc)}
+.sub{color:var(--mute);margin:0 0 6px}
+.badge{display:inline-block;background:var(--acc2);color:var(--acc);border-radius:99px;padding:3px 12px;font-size:.8rem;margin-top:4px}
+h2{font-size:1rem;margin:26px 0 10px;display:flex;gap:8px;align-items:center}
+h2 span{background:var(--acc);color:var(--bg);width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;font-size:.8rem}
+h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin:14px 0 6px}
+.svc,.add{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;color:var(--ink);font:inherit;cursor:pointer}
+.svc.on,.add.on{border-color:var(--acc);background:var(--acc2)}
+.svc b,.add b{display:flex;justify-content:space-between;gap:8px}
+.svc small,.add small{color:var(--mute)}
+.was{text-decoration:line-through;color:var(--mute);font-weight:400;margin-right:6px}
+.tag{font-size:.72rem;color:var(--gold);font-weight:600}
+label{display:block;font-size:.88rem;color:var(--mute);margin:12px 0 4px}
+input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.slot{padding:10px 0;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer}
+.slot.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+.slot:disabled{opacity:.35;text-decoration:line-through;cursor:not-allowed}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sum{background:var(--card);border:1.5px dashed var(--line);border-radius:12px;padding:14px;margin-top:22px;font-size:.95rem}
+.sum div{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+.sum div span:last-child{text-align:right}
+.sum .t{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:700}
+.promo{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--acc2);font-size:.85rem}
+.btn{display:block;width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--ok);color:#fff;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;text-align:center;text-decoration:none}
+.err{color:#c0392b;font-size:.88rem;margin-top:10px;min-height:1.2em}
+.note{color:var(--mute);font-size:.8rem;margin-top:14px;text-align:center}
+</style>
+</head>
+<body>
+<main>
+<h1>De Melati Purnama Spa</h1>
+<p class="sub">Warisan Seri Kecantikan · Spa Private PJS 10/2, Petaling Jaya</p>
+<span class="badge">Khas untuk wanita</span>
+
+<h2><span>1</span>Pilih rawatan</h2>
+<div id="svcs"></div>
+
+<h2><span>2</span>Tambah scrub (pilihan)</h2>
+<div id="adds"></div>
+
+<h2><span>3</span>Pilih tarikh &amp; masa</h2>
+<label for="date">Tarikh</label>
+<input type="date" id="date">
+<label>Masa</label>
+<div class="slots" id="slots"></div>
+
+<h2><span>4</span>Maklumat anda</h2>
+<label for="name">Nama</label>
+<input id="name" autocomplete="name" placeholder="Nama penuh">
+<div class="row">
+<div><label for="phone">No. telefon</label><input id="phone" type="tel" autocomplete="tel" placeholder="012-3456789"></div>
+<div><label for="pax">Bilangan orang</label><select id="pax"></select></div>
+</div>
+<label for="ther">Pilihan terapis</label>
+<select id="ther"></select>
+<label for="note">Catatan (alahan, kawasan sakit, dll.)</label>
+<textarea id="note" rows="2"></textarea>
+
+<div class="sum" id="sum"></div>
+<div class="promo">🎁 Voucher Hadiah 30% untuk kunjungan kedua (sah sehingga 31 Disember 2026). Percuma teh herba + sauna herba untuk pembelian RM80 ke atas.</div>
+<div class="err" id="err"></div>
+<a class="btn" id="go" href="#" target="_blank" rel="noopener">Hantar tempahan melalui WhatsApp</a>
+<p class="note">Tempahan disahkan selepas pihak kami membalas mesej WhatsApp anda.</p>
+</main>
+
+<script>
+// ===== TETAPAN: ubah di sini =====
+var CFG = {
+  wa: "60128315188",      // nombor WhatsApp spa (format 60..., tanpa + atau -)
+  mula: "2026-12-01",     // tarikh paling awal boleh ditempah (pembukaan)
+  buka: 10, tutup: 21,    // waktu operasi (jam, 24j). Slot terakhir = tutup - 1
+  maxPax: 6,
+  tukarHarga: "2027-01-01", // mulai tarikh ini, guna harga 2027 untuk pakej
+  closedDays: [],         // hari tutup mingguan: 0=Ahad ... 6=Sabtu
+  blocked: {}             // slot penuh/cuti. Contoh: {"2026-12-05":[15,16], "2026-12-25":"all"}
+};
+var SVCS = [
+  {g:"Pakej Spa", n:"Pakej Sri Melati", tag:"Mampu Milik", d:90, p:188, p27:198, t:"Urutan badan 45 min · Skrub 20 · Lulur 15 · Mandi bunga 10"},
+  {n:"Pakej Sri Purnama", tag:"Pilihan Ramai", d:120, p:228, p27:248, t:"Urutan 60 min · Skrub 20 · Lulur 20 · Mandi bunga 20"},
+  {n:"Pakej Ratu Kenanga", tag:"Mewah – Eksklusif", d:140, p:288, p27:318, t:"Urutan 60 min · Skrub 20 · Lulur 25 · Mandi bunga 20 · Masker badan 15"},
+  {g:"Promosi Grand Opening", n:"Urutan 45 Minit", d:45, p:58, was:108, t:"Cuci kaki 10 min + urut 35 min"},
+  {n:"Urutan 60 Minit", tag:"Bestseller", d:60, p:68, was:138, t:"Cuci kaki 10 min + urut 50 min"},
+  {n:"Urutan 90 Minit", d:90, p:98, was:198, t:"Cuci kaki 10 min + urut 80 min"}
+];
+var THER = ["Melati","Melur","Merak","Matahari","Mawar"]; // senarai terapis
+var ADDS = [
+  {n:"Scrub Kaki", d:15, p:20},
+  {n:"Scrub Full Body", d:20, p:35},
+  {n:"Lulur Herba", d:30, p:40}
+];
+// =================================
+var sel = null, slot = null, addSel = {};
+var $ = function(i){return document.getElementById(i)};
+
+function tm(h){return (h<10?"0":"")+h+":00"}
+function today(){var d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
+function minDate(){var t=today();return t>CFG.mula?t:CFG.mula}
+function pr(i){var s=SVCS[i];return ($("date").value>=CFG.tukarHarga&&s.p27)?s.p27:s.p}
+function addList(){return ADDS.filter(function(a,i){return addSel[i]})}
+function perPax(){return sel===null?0:pr(sel)+addList().reduce(function(a,x){return a+x.p},0)}
+function total(){return perPax()*parseInt($("pax").value,10)}
+function mins(){return sel===null?0:SVCS[sel].d+addList().reduce(function(a,x){return a+x.d},0)}
+
+function drawSvcs(){
+  var box=$("svcs");box.innerHTML="";
+  SVCS.forEach(function(s,i){
+    if(s.g){var h=document.createElement("h3");h.textContent=s.g;box.appendChild(h)}
+    var b=document.createElement("button");b.type="button";b.className="svc"+(sel===i?" on":"");
+    b.innerHTML="<b><span>"+s.n+(s.tag?" <span class='tag'>"+s.tag+"</span>":"")+"</span><span>"+(s.was?"<span class='was'>RM"+s.was+"</span>":"")+"RM"+pr(i)+"</span></b><small>"+s.d+" minit · "+s.t+"</small>";
+    b.onclick=function(){sel=i;drawSvcs();upd()};
+    box.appendChild(b);
+  });
+}
+function drawAdds(){
+  var box=$("adds");box.innerHTML="";
+  ADDS.forEach(function(a,i){
+    var b=document.createElement("button");b.type="button";b.className="add"+(addSel[i]?" on":"");
+    b.innerHTML="<b><span>"+(addSel[i]?"✓ ":"+ ")+a.n+"</span><span>+RM"+a.p+"</span></b><small>"+a.d+" minit</small>";
+    b.onclick=function(){addSel[i]=!addSel[i];drawAdds();upd()};
+    box.appendChild(b);
+  });
+}
+for(var k=1;k<=CFG.maxPax;k++){var o=document.createElement("option");o.textContent=k;$("pax").appendChild(o)}
+["Mana-mana terapis"].concat(THER).forEach(function(t){var o=document.createElement("option");o.textContent=t;$("ther").appendChild(o)});
+$("date").min=minDate(); $("date").value=minDate();
+
+function full(h){
+  var v=$("date").value; if(!v)return false;
+  if(CFG.closedDays.indexOf(new Date(v+"T00:00:00").getDay())>-1)return true;
+  var b=CFG.blocked[v]; return !!(b&&(b==="all"||b.indexOf(h)>-1));
+}
+function drawSlots(){
+  var box=$("slots");box.innerHTML="";
+  var isToday=$("date").value===today(), now=new Date().getHours();
+  for(var h=CFG.buka;h<CFG.tutup;h++){
+    var b=document.createElement("button");b.type="button";b.className="slot"+(slot===h?" on":"");
+    b.textContent=tm(h);
+    if((isToday&&h<=now)||full(h)){b.disabled=true;if(slot===h)slot=null}
+    (function(h){b.onclick=function(){slot=h;drawSlots();upd()}})(h);
+    box.appendChild(b);
+  }
+}
+function fmtDate(v){
+  if(!v)return "-";
+  return new Date(v+"T00:00:00").toLocaleDateString("ms-MY",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+}
+function upd(){
+  var s=sel===null?null:SVCS[sel], ad=addList().map(function(a){return a.n}).join(", ");
+  $("sum").innerHTML=
+    "<div><span>Rawatan</span><span>"+(s?s.n:"-")+"</span></div>"+
+    "<div><span>Tambahan</span><span>"+(ad||"-")+"</span></div>"+
+    "<div><span>Tarikh</span><span>"+fmtDate($("date").value)+"</span></div>"+
+    "<div><span>Masa</span><span>"+(slot===null?"-":tm(slot))+(s?" ("+mins()+" min)":"")+"</span></div>"+
+    "<div><span>Orang</span><span>"+$("pax").value+"</span></div>"+
+    "<div><span>Terapis</span><span>"+$("ther").value+"</span></div>"+
+    "<div class='t'><span>Anggaran jumlah</span><span>RM"+total()+"</span></div>";
+}
+function msg(){
+  var s=SVCS[sel], ad=addList().map(function(a){return a.n}).join(", ");
+  return "Salam, saya ingin membuat tempahan di De Melati Purnama Spa:\n"+
+   "Nama: "+$("name").value.trim()+"\n"+
+   "Telefon: "+$("phone").value.trim()+"\n"+
+   "Rawatan: "+s.n+"\n"+
+   "Tambahan: "+(ad||"-")+"\n"+
+   "Tarikh: "+fmtDate($("date").value)+"\n"+
+   "Masa: "+tm(slot)+" ("+mins()+" minit)\n"+
+   "Bilangan orang: "+$("pax").value+"\n"+
+   "Terapis: "+$("ther").value+"\n"+
+   "Catatan: "+($("note").value.trim()||"-")+"\n"+
+   "Anggaran: RM"+total();
+}
+$("go").onclick=function(e){
+  var er="";
+  if(sel===null)er="Sila pilih rawatan.";
+  else if(!$("date").value)er="Sila pilih tarikh.";
+  else if(slot===null)er="Sila pilih masa.";
+  else if(!$("name").value.trim())er="Sila isi nama anda.";
+  else if($("phone").value.replace(/\D/g,"").length<9)er="Sila isi no. telefon yang sah.";
+  $("err").textContent=er;
+  if(er){e.preventDefault();return}
+  try{localStorage.setItem("spa_cust",JSON.stringify({n:$("name").value.trim(),p:$("phone").value.trim()}))}catch(x){}
+  this.href="https://wa.me/"+CFG.wa+"?text="+encodeURIComponent(msg());
+};
+$("date").onchange=function(){drawSlots();drawSvcs();upd()};
+$("pax").onchange=upd;$("ther").onchange=upd;
+try{var c=JSON.parse(localStorage.getItem("spa_cust")||"null");if(c){$("name").value=c.n||"";$("phone").value=c.p||""}}catch(x){}
+drawSvcs();drawAdds();drawSlots();upd();
+</script>
+</body>
+</html>
