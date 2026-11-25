@@ -38,7 +38,10 @@ input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line
 .sum .t{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:700}
 .promo{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--acc2);font-size:.85rem}
 .btn{display:block;width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--ok);color:#fff;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;text-align:center;text-decoration:none}
-.btn.alt{background:transparent;color:var(--ok);border:2px solid var(--ok);margin-top:10px}
+.pay{margin-top:14px;padding:14px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);font-size:.92rem}
+.pay h4{margin:0 0 8px;font-size:.95rem;color:var(--acc)}
+.pay .acc{font-size:1.25rem;font-weight:700;letter-spacing:.04em;margin:4px 0}
+.pay .mini{display:inline-block;margin:8px 8px 0 0;padding:8px 14px;border-radius:10px;border:1.5px solid var(--acc);background:transparent;color:var(--acc);font:inherit;font-size:.88rem;cursor:pointer;text-decoration:none}
 .err{color:#c0392b;font-size:.88rem;margin-top:10px;min-height:1.2em}
 .note{color:var(--mute);font-size:.8rem;margin-top:14px;text-align:center}
 </style>
@@ -75,17 +78,24 @@ input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line
 
 <div class="sum" id="sum"></div>
 <div class="promo">🎁 Voucher Hadiah 30% untuk kunjungan kedua (sah sehingga 31 Disember 2026). Percuma teh herba + sauna herba untuk pembelian RM80 ke atas.</div>
+<div class="pay">
+<h4>Maklumat pembayaran</h4>
+<div>AFFIN BANK<br>DE MELATI PURNAMA SPA</div>
+<div class="acc">1053 1106 1866</div>
+<button type="button" class="mini" id="copy">Salin no. akaun</button>
+<a class="mini" id="resit" href="#" target="_blank" rel="noopener">Hantar resit ke WhatsApp</a>
+<div class="note" style="text-align:left;margin-top:10px">Selepas membuat bayaran, sila WhatsApp resit kepada kami.</div>
+</div>
 <div class="err" id="err"></div>
-<a class="btn" id="go" data-k="wa" href="#" target="_blank" rel="noopener">Hantar tempahan ke WhatsApp 1</a>
-<a class="btn alt" id="go2" data-k="wa2" href="#" target="_blank" rel="noopener">Hantar juga ke WhatsApp 2</a>
-<p class="note">Tekan kedua-dua butang supaya tempahan sampai kepada kedua-dua nombor kami. Tempahan disahkan selepas kami membalas mesej WhatsApp anda.</p>
+<a class="btn" id="go" data-k="wa" href="#" target="_blank" rel="noopener">Hantar tempahan melalui WhatsApp</a>
+<p class="note">Tempahan disahkan selepas pihak kami membalas mesej WhatsApp anda.</p>
 </main>
 
 <script>
 // ===== TETAPAN: ubah di sini =====
 var CFG = {
   wa: "60128315188",      // nombor WhatsApp 1
-  wa2: "601145787860",    // nombor WhatsApp 2 (011-45787860)      // nombor WhatsApp spa (format 60..., tanpa + atau -)
+      // nombor WhatsApp spa (format 60..., tanpa + atau -)
   mula: "2026-12-01",     // tarikh paling awal boleh ditempah (pembukaan)
   buka: 10, tutup: 21,    // waktu operasi (jam, 24j). Slot terakhir = tutup - 1
   maxPax: 6,
@@ -188,6 +198,13 @@ function msg(){
    "Catatan: "+($("note").value.trim()||"-")+"\n"+
    "Anggaran: RM"+total();
 }
+$("resit").href="https://wa.me/"+CFG.wa+"?text="+encodeURIComponent("Salam, saya hantar resit pembayaran tempahan. Nama: ");
+$("copy").onclick=function(){
+  var b=this,n="105311061866";
+  function ok(){b.textContent="Disalin ✓";setTimeout(function(){b.textContent="Salin no. akaun"},2000)}
+  try{navigator.clipboard.writeText(n).then(ok,fb)}catch(x){fb()}
+  function fb(){try{var t=document.createElement("textarea");t.value=n;document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t);ok()}catch(x){b.textContent="Salin: 1053 1106 1866"}}
+};
 function goClick(e){
   var er="";
   if(sel===null)er="Sila pilih rawatan.";
@@ -200,7 +217,7 @@ function goClick(e){
   try{localStorage.setItem("spa_cust",JSON.stringify({n:$("name").value.trim(),p:$("phone").value.trim()}))}catch(x){}
   this.href="https://wa.me/"+CFG[this.dataset.k]+"?text="+encodeURIComponent(msg());
 };
-$("go").onclick=goClick;$("go2").onclick=goClick;
+$("go").onclick=goClick;
 $("date").onchange=function(){drawSlots();drawSvcs();upd()};
 $("pax").onchange=upd;$("ther").onchange=upd;
 try{var c=JSON.parse(localStorage.getItem("spa_cust")||"null");if(c){$("name").value=c.n||"";$("phone").value=c.p||""}}catch(x){}
