@@ -94,11 +94,12 @@ input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line
 <script>
 // ===== TETAPAN: ubah di sini =====
 var CFG = {
-  wa: "60128315188",      // nombor WhatsApp 1
+  wa: "601145787860",      // nombor WhatsApp 1
       // nombor WhatsApp spa (format 60..., tanpa + atau -)
   mula: "2026-12-01",     // tarikh paling awal boleh ditempah (pembukaan)
   buka: 10, tutup: 21,    // waktu operasi (jam, 24j). Slot terakhir = tutup - 1
   maxPax: 6,
+  promoDate: "2026-12-01", // tarikh sah pakej promosi (satu hari sahaja)
   tukarHarga: "2027-01-01", // mulai tarikh ini, guna harga 2027 untuk pakej
   closedDays: [],         // hari tutup mingguan: 0=Ahad ... 6=Sabtu
   blocked: {}             // slot penuh/cuti. Contoh: {"2026-12-05":[15,16], "2026-12-25":"all"}
@@ -130,13 +131,22 @@ function perPax(){return sel===null?0:pr(sel)+addList().reduce(function(a,x){ret
 function total(){return perPax()*parseInt($("pax").value,10)}
 function mins(){return sel===null?0:SVCS[sel].d+addList().reduce(function(a,x){return a+x.d},0)}
 
+function isPromo(i){return i!==null&&!!SVCS[i].was}
+function applyDateRule(){
+  var d=$("date");
+  if(isPromo(sel)){d.min=CFG.promoDate;d.max=CFG.promoDate;d.value=CFG.promoDate}
+  else{d.min=minDate();d.removeAttribute("max");if(d.value<d.min)d.value=d.min}
+  drawSlots();
+}
 function drawSvcs(){
   var box=$("svcs");box.innerHTML="";
   SVCS.forEach(function(s,i){
     if(s.g){var h=document.createElement("h3");h.textContent=s.g;box.appendChild(h)}
     var b=document.createElement("button");b.type="button";b.className="svc"+(sel===i?" on":"");
-    b.innerHTML="<b><span>"+s.n+(s.tag?" <span class='tag'>"+s.tag+"</span>":"")+"</span><span>"+(s.was?"<span class='was'>RM"+s.was+"</span>":"")+"RM"+pr(i)+"</span></b><small>"+s.d+" minit · "+s.t+"</small>";
-    b.onclick=function(){sel=i;drawSvcs();upd()};
+    var gone=s.was&&CFG.promoDate<minDate();
+    if(gone){b.disabled=true;b.style.opacity=".45"}
+    b.innerHTML="<b><span>"+s.n+(s.tag?" <span class='tag'>"+s.tag+"</span>":"")+"</span><span>"+(s.was?"<span class='was'>RM"+s.was+"</span>":"")+"RM"+pr(i)+"</span></b><small>"+s.d+" minit · "+s.t+(s.was?" · <em style='font-style:normal;font-weight:600;color:var(--gold)'>"+(gone?"Promosi telah tamat":"Sah "+fmtDate(CFG.promoDate)+" sahaja")+"</em>":"")+"</small>";
+    b.onclick=function(){sel=i;applyDateRule();drawSvcs();upd()};
     box.appendChild(b);
   });
 }
@@ -208,6 +218,7 @@ $("copy").onclick=function(){
 function goClick(e){
   var er="";
   if(sel===null)er="Sila pilih rawatan.";
+  else if(isPromo(sel)&&$("date").value!==CFG.promoDate)er="Pakej promosi hanya boleh ditempah pada "+fmtDate(CFG.promoDate)+".";
   else if(!$("date").value)er="Sila pilih tarikh.";
   else if(slot===null)er="Sila pilih masa.";
   else if(!$("name").value.trim())er="Sila isi nama anda.";
@@ -218,7 +229,7 @@ function goClick(e){
   this.href="https://wa.me/"+CFG[this.dataset.k]+"?text="+encodeURIComponent(msg());
 };
 $("go").onclick=goClick;
-$("date").onchange=function(){drawSlots();drawSvcs();upd()};
+$("date").onchange=function(){if(isPromo(sel)&&this.value!==CFG.promoDate)this.value=CFG.promoDate;drawSlots();drawSvcs();upd()};
 $("pax").onchange=upd;$("ther").onchange=upd;
 try{var c=JSON.parse(localStorage.getItem("spa_cust")||"null");if(c){$("name").value=c.n||"";$("phone").value=c.p||""}}catch(x){}
 drawSvcs();drawAdds();drawSlots();upd();
