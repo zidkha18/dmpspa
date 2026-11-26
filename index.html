@@ -42,6 +42,17 @@ input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line
 .pay h4{margin:0 0 8px;font-size:.95rem;color:var(--acc)}
 .pay .acc{font-size:1.25rem;font-weight:700;letter-spacing:.04em;margin:4px 0}
 .pay .mini{display:inline-block;margin:8px 8px 0 0;padding:8px 14px;border-radius:10px;border:1.5px solid var(--acc);background:transparent;color:var(--acc);font:inherit;font-size:.88rem;cursor:pointer;text-decoration:none}
+.cal{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px}
+.calh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.nav{border:0;background:var(--acc2);color:var(--acc);width:34px;height:34px;border-radius:50%;font-size:1.3rem;cursor:pointer;padding:0}
+.nav:disabled{opacity:.3;cursor:not-allowed}
+.calg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.calg i{font-style:normal;font-size:.72rem;color:var(--mute);padding:4px 0}
+.day{aspect-ratio:1;border:1.5px solid transparent;border-radius:10px;background:transparent;color:var(--ink);font:inherit;cursor:pointer;padding:0}
+.day.on{background:var(--acc);color:var(--bg)}
+.day.off{opacity:.28;cursor:not-allowed}
+.pm .day.off{filter:blur(1px)}
+.day.pd{border-color:var(--gold);font-weight:700}
 .err{color:#c0392b;font-size:.88rem;margin-top:10px;min-height:1.2em}
 .note{color:var(--mute);font-size:.8rem;margin-top:14px;text-align:center}
 </style>
@@ -59,8 +70,10 @@ input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line
 <div id="adds"></div>
 
 <h2><span>3</span>Pilih tarikh &amp; masa</h2>
-<label for="date">Tarikh</label>
-<input type="date" id="date">
+<label>Tarikh</label>
+<input type="hidden" id="date">
+<div id="cal" class="cal"></div>
+<div class="note" id="calnote" style="text-align:left;margin:6px 0 0"></div>
 <label>Masa</label>
 <div class="slots" id="slots"></div>
 
@@ -132,11 +145,40 @@ function total(){return perPax()*parseInt($("pax").value,10)}
 function mins(){return sel===null?0:SVCS[sel].d+addList().reduce(function(a,x){return a+x.d},0)}
 
 function isPromo(i){return i!==null&&!!SVCS[i].was}
+var MN=["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
+var calY,calM;
+function ds(y,m,d){return y+"-"+(m<9?"0":"")+(m+1)+"-"+(d<10?"0":"")+d}
+function dayOff(v){
+  if(v<minDate())return true;
+  if(isPromo(sel)&&v!==CFG.promoDate)return true;
+  if(CFG.closedDays.indexOf(new Date(v+"T00:00:00").getDay())>-1)return true;
+  return CFG.blocked[v]==="all";
+}
+function firstOpen(){
+  var d=new Date(minDate()+"T00:00:00");
+  for(var i=0;i<120;i++){var v=ds(d.getFullYear(),d.getMonth(),d.getDate());if(!dayOff(v))return v;d.setDate(d.getDate()+1)}
+  return minDate();
+}
+function gotoMonth(v){calY=parseInt(v.slice(0,4),10);calM=parseInt(v.slice(5,7),10)-1}
+function drawCal(){
+  var sv=$("date").value,promo=isPromo(sel),mn=minDate();
+  var first=new Date(calY,calM,1).getDay(),dim=new Date(calY,calM+1,0).getDate();
+  var atMin=(calY*12+calM)<=(parseInt(mn.slice(0,4),10)*12+parseInt(mn.slice(5,7),10)-1);
+  var h='<div class="calh"><button type="button" class="nav" data-nav="-1"'+(atMin?' disabled':'')+'>&#8249;</button><b>'+MN[calM]+' '+calY+'</b><button type="button" class="nav" data-nav="1">&#8250;</button></div><div class="calg'+(promo?' pm':'')+'">';
+  ["Ahd","Isn","Sel","Rab","Kha","Jum","Sab"].forEach(function(w){h+='<i>'+w+'</i>'});
+  for(var k=0;k<first;k++)h+='<span></span>';
+  for(var d=1;d<=dim;d++){
+    var v=ds(calY,calM,d),off=dayOff(v);
+    h+='<button type="button" class="day'+(off?' off':'')+(v===sv?' on':'')+(promo&&v===CFG.promoDate?' pd':'')+'" data-v="'+v+'"'+(off?' disabled':'')+'>'+d+'</button>';
+  }
+  $("cal").innerHTML=h+'</div>';
+  $("calnote").textContent=promo?"Pakej promosi hanya sah pada "+fmtDate(CFG.promoDate)+". Tarikh lain dikelabukan.":"";
+}
 function applyDateRule(){
   var d=$("date");
-  if(isPromo(sel)){d.min=CFG.promoDate;d.max=CFG.promoDate;d.value=CFG.promoDate}
-  else{d.min=minDate();d.removeAttribute("max");if(d.value<d.min)d.value=d.min}
-  drawSlots();
+  if(isPromo(sel))d.value=CFG.promoDate;
+  else if(dayOff(d.value))d.value=firstOpen();
+  gotoMonth(d.value);drawCal();drawSlots();
 }
 function drawSvcs(){
   var box=$("svcs");box.innerHTML="";
@@ -161,7 +203,7 @@ function drawAdds(){
 }
 for(var k=1;k<=CFG.maxPax;k++){var o=document.createElement("option");o.textContent=k;$("pax").appendChild(o)}
 ["Mana-mana terapis"].concat(THER).forEach(function(t){var o=document.createElement("option");o.textContent=t;$("ther").appendChild(o)});
-$("date").min=minDate(); $("date").value=minDate();
+$("date").value=firstOpen();gotoMonth($("date").value);
 
 function full(h){
   var v=$("date").value; if(!v)return false;
@@ -229,10 +271,15 @@ function goClick(e){
   this.href="https://wa.me/"+CFG[this.dataset.k]+"?text="+encodeURIComponent(msg());
 };
 $("go").onclick=goClick;
-$("date").onchange=function(){if(isPromo(sel)&&this.value!==CFG.promoDate)this.value=CFG.promoDate;drawSlots();drawSvcs();upd()};
+$("cal").onclick=function(e){
+  var t=e.target,ds_=t&&t.dataset;
+  if(!ds_)return;
+  if(ds_.nav){calM+=parseInt(ds_.nav,10);if(calM<0){calM=11;calY--}if(calM>11){calM=0;calY++}drawCal();return}
+  if(ds_.v&&!t.disabled&&!dayOff(ds_.v)){$("date").value=ds_.v;drawCal();drawSlots();drawSvcs();upd()}
+};
 $("pax").onchange=upd;$("ther").onchange=upd;
 try{var c=JSON.parse(localStorage.getItem("spa_cust")||"null");if(c){$("name").value=c.n||"";$("phone").value=c.p||""}}catch(x){}
-drawSvcs();drawAdds();drawSlots();upd();
+drawSvcs();drawAdds();drawCal();drawSlots();upd();
 </script>
 </body>
 </html>
