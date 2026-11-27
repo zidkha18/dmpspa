@@ -113,6 +113,8 @@ var CFG = {
   buka: 10, tutup: 21,    // waktu operasi (jam, 24j). Slot terakhir = tutup - 1
   maxPax: 6,
   promoDate: "2026-12-01", // tarikh sah pakej promosi (satu hari sahaja)
+  sheetUrl: "https://script.google.com/macros/s/AKfycbwe8hhlbmWdQ08ZQmD2AoMB76dcy4v_3Vt172TVYoPRsz-73kha1uRJRkiFZrtjdxKZ/exec",           // pautan Google Apps Script (rekod tempahan automatik ke Google Sheets). Kosong = tidak aktif
+  pilihTerapis: false,    // true = pelanggan boleh pilih nama terapis; false = hanya "Mana-mana terapis"
   tukarHarga: "2027-01-01", // mulai tarikh ini, guna harga 2027 untuk pakej
   closedDays: [],         // hari tutup mingguan: 0=Ahad ... 6=Sabtu
   blocked: {}             // slot penuh/cuti. Contoh: {"2026-12-05":[15,16], "2026-12-25":"all"}
@@ -202,7 +204,7 @@ function drawAdds(){
   });
 }
 for(var k=1;k<=CFG.maxPax;k++){var o=document.createElement("option");o.textContent=k;$("pax").appendChild(o)}
-["Mana-mana terapis"].concat(THER).forEach(function(t){var o=document.createElement("option");o.textContent=t;$("ther").appendChild(o)});
+["Mana-mana terapis"].concat(THER).forEach(function(t,i){var o=document.createElement("option");o.value=t;o.textContent=t;if(i>0&&!CFG.pilihTerapis){o.disabled=true;o.textContent=t+" (belum tersedia)"}$("ther").appendChild(o)});
 $("date").value=firstOpen();gotoMonth($("date").value);
 
 function full(h){
@@ -257,6 +259,17 @@ $("copy").onclick=function(){
   try{navigator.clipboard.writeText(n).then(ok,fb)}catch(x){fb()}
   function fb(){try{var t=document.createElement("textarea");t.value=n;document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t);ok()}catch(x){b.textContent="Salin: 1053 1106 1866"}}
 };
+function logBooking(){
+  if(!CFG.sheetUrl)return;
+  try{
+    var s=SVCS[sel];
+    fetch(CFG.sheetUrl,{method:"POST",mode:"no-cors",keepalive:true,headers:{"Content-Type":"text/plain"},body:JSON.stringify({
+      nama:$("name").value.trim(),telefon:$("phone").value.trim(),rawatan:s.n,
+      tambahan:addList().map(function(a){return a.n}).join(", "),
+      tarikh:$("date").value,masa:tm(slot),orang:$("pax").value,terapis:$("ther").value,
+      catatan:$("note").value.trim(),jumlah:total()})});
+  }catch(x){}
+}
 function goClick(e){
   var er="";
   if(sel===null)er="Sila pilih rawatan.";
@@ -268,6 +281,7 @@ function goClick(e){
   $("err").textContent=er;
   if(er){e.preventDefault();return}
   try{localStorage.setItem("spa_cust",JSON.stringify({n:$("name").value.trim(),p:$("phone").value.trim()}))}catch(x){}
+  logBooking();
   this.href="https://wa.me/"+CFG[this.dataset.k]+"?text="+encodeURIComponent(msg());
 };
 $("go").onclick=goClick;
