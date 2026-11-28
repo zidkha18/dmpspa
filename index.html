@@ -114,6 +114,7 @@ var CFG = {
   maxPax: 6,
   promoDate: "2026-12-01", // tarikh sah pakej promosi (satu hari sahaja)
   sheetUrl: "https://script.google.com/macros/s/AKfycbwe8hhlbmWdQ08ZQmD2AoMB76dcy4v_3Vt172TVYoPRsz-73kha1uRJRkiFZrtjdxKZ/exec",           // pautan Google Apps Script (rekod tempahan automatik ke Google Sheets). Kosong = tidak aktif
+  kapasiti: 1,            // bil. tempahan serentak pada satu slot sebelum slot dikelabukan
   pilihTerapis: false,    // true = pelanggan boleh pilih nama terapis; false = hanya "Mana-mana terapis"
   tukarHarga: "2027-01-01", // mulai tarikh ini, guna harga 2027 untuk pakej
   closedDays: [],         // hari tutup mingguan: 0=Ahad ... 6=Sabtu
@@ -199,7 +200,7 @@ function drawAdds(){
   ADDS.forEach(function(a,i){
     var b=document.createElement("button");b.type="button";b.className="add"+(addSel[i]?" on":"");
     b.innerHTML="<b><span>"+(addSel[i]?"✓ ":"+ ")+a.n+"</span><span>+RM"+a.p+"</span></b><small>"+a.d+" minit</small>";
-    b.onclick=function(){addSel[i]=!addSel[i];drawAdds();upd()};
+    b.onclick=function(){addSel[i]=!addSel[i];drawAdds();drawSlots();upd()};
     box.appendChild(b);
   });
 }
@@ -212,13 +213,37 @@ function full(h){
   if(CFG.closedDays.indexOf(new Date(v+"T00:00:00").getDay())>-1)return true;
   var b=CFG.blocked[v]; return !!(b&&(b==="all"||b.indexOf(h)>-1));
 }
+var BK={};
+function loadBooked(){
+  if(!CFG.sheetUrl)return;
+  try{
+    fetch(CFG.sheetUrl+"?x="+Date.now()).then(function(r){return r.json()}).then(function(rows){
+      var b={};
+      rows.forEach(function(r){
+        var h=parseInt(String(r.m).split(":")[0],10);
+        if(isNaN(h)||!r.t)return;
+        var n=Math.ceil((parseInt(r.d,10)||60)/60);
+        b[r.t]=b[r.t]||{};
+        for(var k=0;k<n;k++)b[r.t][h+k]=(b[r.t][h+k]||0)+1;
+      });
+      BK=b;drawSlots();
+    }).catch(function(){});
+  }catch(x){}
+}
+function slotBlocked(h){
+  var v=$("date").value,day=BK[v];
+  if(!day)return false;
+  var n=Math.ceil((sel===null?60:mins())/60);
+  for(var k=0;k<n;k++){if((day[h+k]||0)>=CFG.kapasiti)return true}
+  return false;
+}
 function drawSlots(){
   var box=$("slots");box.innerHTML="";
   var isToday=$("date").value===today(), now=new Date().getHours();
   for(var h=CFG.buka;h<CFG.tutup;h++){
     var b=document.createElement("button");b.type="button";b.className="slot"+(slot===h?" on":"");
     b.textContent=tm(h);
-    if((isToday&&h<=now)||full(h)){b.disabled=true;if(slot===h)slot=null}
+    if((isToday&&h<=now)||full(h)||slotBlocked(h)){b.disabled=true;if(slot===h)slot=null}
     (function(h){b.onclick=function(){slot=h;drawSlots();upd()}})(h);
     box.appendChild(b);
   }
@@ -267,7 +292,7 @@ function logBooking(){
       nama:$("name").value.trim(),telefon:$("phone").value.trim(),rawatan:s.n,
       tambahan:addList().map(function(a){return a.n}).join(", "),
       tarikh:$("date").value,masa:tm(slot),orang:$("pax").value,terapis:$("ther").value,
-      catatan:$("note").value.trim(),jumlah:total()})});
+      catatan:$("note").value.trim(),jumlah:total(),tempoh:mins()})});
   }catch(x){}
 }
 function goClick(e){
@@ -289,11 +314,11 @@ $("cal").onclick=function(e){
   var t=e.target,ds_=t&&t.dataset;
   if(!ds_)return;
   if(ds_.nav){calM+=parseInt(ds_.nav,10);if(calM<0){calM=11;calY--}if(calM>11){calM=0;calY++}drawCal();return}
-  if(ds_.v&&!t.disabled&&!dayOff(ds_.v)){$("date").value=ds_.v;drawCal();drawSlots();drawSvcs();upd()}
+  if(ds_.v&&!t.disabled&&!dayOff(ds_.v)){$("date").value=ds_.v;drawCal();drawSlots();drawSvcs();upd();loadBooked()}
 };
 $("pax").onchange=upd;$("ther").onchange=upd;
 try{var c=JSON.parse(localStorage.getItem("spa_cust")||"null");if(c){$("name").value=c.n||"";$("phone").value=c.p||""}}catch(x){}
-drawSvcs();drawAdds();drawCal();drawSlots();upd();
+drawSvcs();drawAdds();drawCal();drawSlots();upd();loadBooked();
 </script>
 </body>
 </html>
